@@ -18,6 +18,7 @@ package gofpdf
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -113,6 +114,8 @@ func (f *Fpdf) HTMLBasicNew() (html HTMLBasicType) {
 	return
 }
 
+// (The fork adds the <color> tag with r, g and b attributes like : <color r=35 g=56 b=160>text</color>)
+//
 // Write prints text from the current position using the currently selected
 // font. See HTMLBasicNew() to create a receiver that is associated with the
 // PDF document instance. The text can be encoded with a basic subset of HTML
@@ -180,6 +183,12 @@ func (html *HTMLBasicType) Write(lineHt float64, htmlStr string) {
 				setStyle(0, 0, 1)
 			case "br":
 				html.pdf.Ln(lineHt)
+			case "color":
+				r, _ := strconv.Atoi(el.Attr["r"])
+				g, _ := strconv.Atoi(el.Attr["g"])
+				b, _ := strconv.Atoi(el.Attr["b"])
+				textR, textG, textB = html.pdf.GetTextColor()
+				html.pdf.SetTextColor(r, g, b)
 			case "a":
 				hrefStr, ok = el.Attr["href"]
 				if !ok {
@@ -194,7 +203,8 @@ func (html *HTMLBasicType) Write(lineHt float64, htmlStr string) {
 				setStyle(0, -1, 0)
 			case "u":
 				setStyle(0, 0, -1)
-
+			case "color":
+				html.pdf.SetTextColor(textR, textG, textB)
 			}
 		}
 	}
